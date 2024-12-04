@@ -44,9 +44,9 @@ exports.deleteUser = async(req,res) => {
     console.log(id)
     try{
           // Update blogs authored by the user
-    await Blog.updateMany(
+    await Blog.deleteMany(
         { 'author.userId': id },
-        { $unset: { 'author.userId': "" } } // Remove the userId field while keeping the name
+        //{ $unset: { 'author.userId': "" } } // Remove the userId field while keeping the name
       );
 
         const user = await Admin.findByIdAndDelete(id)
