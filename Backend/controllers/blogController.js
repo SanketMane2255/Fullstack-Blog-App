@@ -15,7 +15,7 @@ exports.getAllBlog = async(req,res) => {
 exports.getSPECIFICBlog = async(req,res) =>{
     const {id} = req.params
     try{
-        const blog = await Blog.findById(id).populate('author','name-_id')
+        const blog = await Blog.findById(id).populate('author','name-_id').populate('comments.user', 'name')
         res.status(200).json(blog)
     } catch(error){
         res.status(400).json({message:error})
@@ -25,6 +25,7 @@ exports.getSPECIFICBlog = async(req,res) =>{
 exports.create = async(req,res) => {
     //console.log(req.user)
     const {title, content} = req.body
+    const imagesPaths = req.files ? req.files.map(file => file.path) : [];
     //const userId = req.user.id; // Extracted from token
     //const userName = req.user.name; // Extracted from token
     //console.log(req.user.id)
@@ -36,7 +37,8 @@ exports.create = async(req,res) => {
             author:{
                 userId:req.user.id,
                 name:req.user.name
-            }
+            },
+            images:imagesPaths
         })
         //console.log(blog)
         await blog.save()
@@ -96,18 +98,33 @@ exports.likeBlog = async(req,res) => {
     }
 }
 
-exports.updateBlog = async(req,res) => {
-    const {blogId} = req.params
-    const {title,content} = req.body
+exports.updateBlog = async (req, res) => {
+    const { blogId } = req.params;
+    const { title, content } = req.body;
+    const imagesPaths = req.files ? req.files.map(file => file.path) : [];
 
-    try{
-        const blog = await Blog.findByIdAndUpdate(blogId,{title,content})
-        res.status(200).json({message:"Blog updated successfully",blog})
+    try {
+        // Fetch and update the blog in the database
+        const blog = await Blog.findById(blogId);
 
-    } catch(error){
-        res.status(400).json({message:error})
+        if (!blog) {
+            return res.status(404).json({ message: "Blog not found" });
+        }
+
+        // Update fields
+        blog.title = title || blog.title;
+        blog.content = content || blog.content;
+        blog.images = [...blog.images, ...imagesPaths]; // Append new images to existing ones
+
+        // Save changes to the database
+        await blog.save();
+
+        res.status(200).json({ message: "Blog updated successfully", blog });
+    } catch (error) {
+        res.status(400).json({ message: "Error updating blog", error });
     }
-}
+};
+
 
 
 exports.deleteBlog = async(req,res) => {

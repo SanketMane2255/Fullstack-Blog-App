@@ -2,26 +2,29 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Button, Container, Row, Col, Card, Alert } from 'react-bootstrap';
 
 const Profile = () => {
     const [user, setUser] = useState({});
     const [blogs, setBlogs] = useState([]);
     const [blogCount, setBlogCount] = useState(0);
     const [error, setError] = useState("");
+    const [isAuthenticated, setIsAuthenticated] = useState(true);
     const navigate = useNavigate();
-
-    
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const token = localStorage.getItem('token'); // JWT from local storage
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setIsAuthenticated(false);
+                    return;
+                }
+
                 const config = {
                     headers: { Authorization: `Bearer ${token}` },
                 };
                 const response = await axios.get('http://localhost:4000/api/user/profile', config);
-
-                //console.log(response)
 
                 setUser(response.data.user);
                 setBlogs(response.data.blogs);
@@ -29,6 +32,7 @@ const Profile = () => {
             } catch (error) {
                 console.error('Error fetching profile:', error);
                 setError(error.response?.data?.message || 'Failed to load profile');
+                setIsAuthenticated(false);
             }
         };
 
@@ -36,70 +40,91 @@ const Profile = () => {
     }, []);
 
     const handleEdit = (blogId) => {
-        // Navigate to the EditBlog component with the blogId as a route parameter
         navigate(`/edit-blog/${blogId}`);
     };
 
     const handleDelete = async (blogId) => {
         try {
-            const token = localStorage.getItem('token'); // JWT from local storage
-                const config = {
-                    headers: { Authorization: `Bearer ${token}` },
-                };
-            await axios.delete(`http://localhost:4000/api/blog/${blogId}/delete`,config);
+            const token = localStorage.getItem('token');
+            const config = {
+                headers: { Authorization: `Bearer ${token}` },
+            };
+            await axios.delete(`http://localhost:4000/api/blog/${blogId}/delete`, config);
             setBlogs(blogs.filter((blog) => blog._id !== blogId));
         } catch (error) {
             console.error('Error deleting blog', error);
         }
     };
 
+    if (!isAuthenticated) {
+        return (
+            <Container className="text-center mt-5">
+                <Alert variant="danger">
+                    <h4>Please login to view the profile</h4>
+                </Alert>
+                <Button variant="secondary" onClick={() => navigate('/')}>
+                    Login
+                </Button>
+            </Container>
+        );
+    }
+
     return (
-        <div className="profile container mt-5">
-            <h1 className="text-center mb-4">{user.name}'s Profile</h1>
-            <p className="text-center">Email: {user.email}</p>
-            <p className="text-center">Total Blogs: {blogCount}</p>
+        <Container className="profile-container mt-5">
+            <h1 className="text-center mb-4 profile-heading">{user.name}'s Profile</h1>
+            <p className="text-center profile-email">Email: {user.email}</p>
+            <p className="text-center profile-blog-count">Total Blogs: {blogCount}</p>
 
-            {error && <p className="text-danger text-center">{error}</p>}
+            {error && (
+                <Alert variant="danger" className="text-center">
+                    {error}
+                </Alert>
+            )}
 
-            <div className="row">
+            <Row>
                 {blogs.length === 0 ? (
                     <p className="text-center">No blogs available</p>
                 ) : (
                     blogs.map((blog) => (
-                        <div key={blog._id} className="col-md-4 mb-4">
-                            <div className="card shadow-sm">
-                                <div className="card-body">
-                                    <h5 className="card-title">{blog.title}</h5>
-                                    <p className="card-text">{blog.content}</p>
-                                    <p className="card-text">
+                        <Col md={4} className="mb-4" key={blog._id}>
+                            <Card className="shadow-sm h-100">
+                                <Card.Body>
+                                    <Card.Title>{blog.title}</Card.Title>
+                                    <Card.Text className="blog-content">
+                                        {blog.content}
+                                    </Card.Text>
+                                    <Card.Text>
                                         <small className="text-muted">
                                             Likes: {blog.likes.length}, Comments: {blog.comments.length}
                                         </small>
-                                    </p>
+                                    </Card.Text>
                                     <div className="d-flex justify-content-between">
-                                        <button
-                                            className="btn btn-primary btn-sm"
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
                                             onClick={() => handleEdit(blog._id)}
                                         >
                                             Edit
-                                        </button>
-                                        <button
-                                            className="btn btn-danger btn-sm"
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
                                             onClick={() => handleDelete(blog._id)}
                                         >
                                             Delete
-                                        </button>
+                                        </Button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
                     ))
                 )}
-            </div>
-        </div>
+            </Row>
+        </Container>
     );
 };
 
 export default Profile;
+
 
 

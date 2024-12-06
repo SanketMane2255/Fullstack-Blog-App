@@ -17,6 +17,7 @@ app.use(cors({
 }))
 
 app.use(express.json())
+app.use('/uploads', express.static('uploads'));
 app.use('/api/user',userRoute)
 app.use('/api/blog',blogroute)
 app.use('/api/admin',adminRoute)

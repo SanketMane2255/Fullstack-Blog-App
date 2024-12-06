@@ -8,6 +8,7 @@ const blogSchema = new mongoose.Schema({
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         name: { type: String, required: true }, // Add this field to store the author's name
       },
+      images:[String],
     likes:[{type:mongoose.Schema.Types.ObjectId, ref:'User'}],
     comments:[
         {

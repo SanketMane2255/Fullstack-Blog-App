@@ -54,7 +54,7 @@ const AdminDashboard = () => {
                 },
             });
             setUsers(users.filter((user) => user._id !== userId));
-            setBlogs(blogs.filter((blog) => blog._id !== blogId))
+            setBlogs(blogs.filter((blog) => blog._id !== blog))
         } catch (error) {
             console.error("Error occurred while deleting user:", error);
         }

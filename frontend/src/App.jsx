@@ -10,6 +10,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import CreateBlog from './pages/CreateBlog';
 import Profile from './pages/Profile';
 import EditBlog from './pages/EditBlog';
+import BlogDetails from './pages/BlogDetails';
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Registration />} />
         <Route path="/blogs" element={<Blogs />} />
+        <Route path='/blog/:id' element={<BlogDetails/>}/>
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path='/createblog' element={<CreateBlog/>}/>
